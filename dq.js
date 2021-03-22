@@ -1,10 +1,10 @@
 //Slider code
 function openNav() {
   document.getElementById("floatingDQButton").style.display = "none"; //Switch DQ button off
-  
+
   document.getElementById("mySidebar").style.width = "250px";
   document.getElementById("main").style.marginLeft = "250px";
-  
+
   runDQ();
   //loadChart(); //Load the chart for the widget
 }
@@ -54,14 +54,18 @@ function loadChart() {
 //Digital Quality API ******
     //DQ Variables
     var assetId = ""; //Will be set after the asset is sent to DQ
-    var apiKey = "pE9tUxSzHYXAC63G26EkaJDmwtP62QJ9j8lWXOXh"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
-    var websiteId = "990e142732508455348a95ffd31e4efd"; //Enter your DQ site address (you can get this through the API or from Support)
+    var apiKey = "<your_api_key>"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
+    var websiteId = "your_website_id>"; //Enter your DQ site address (you can get this through the API or from Support)
     var spellingCount = 0;
     var cpErrors = 0;
     var totalCheckpoints = 0;
+    var activeIssueId; //Set to the id of the active issue so we can reset colour just before updating to new issue
     //Pass all html from the page in to a variable to pass to DQ
     //var markup = document.documentElement.innerHTML;
-    var markup = document.getElementById("main").innerHTML; // Copy all html inside the main div tag...
+    var headContent = document.head.innerHTML;
+    console.log("Head Content: " + headContent);
+    var markup = document.body.innerHTML;
+    //var markup = document.getElementById("main").innerHTML; // Copy all html inside the main div tag...
     console.log(markup);
 function runDQ() {
 	console.log("Running runDQ()");
@@ -77,7 +81,7 @@ function runDQ() {
       },
       "data": {
         "websiteId": websiteId,
-        "content": markup,
+        "content": "<head>"+headContent+"</head><body>"+markup+"</body>", //Send head and body to DQM as an asset
         "contentType": "text/html; charset=UTF-8"
       }
     };
@@ -88,14 +92,14 @@ function runDQ() {
       assetId = response.id; //test
       console.log("Asset ID set to: " + assetId); //test
       console.log("About to run checkDQ");
-      checkDq(); // Run the DQ check
+      //checkDq(); // Run the DQ check only run to highlight ALL issues
       checkSpellings(); //Run spell checker on DQ Server
       checkCheckpoints(); //Run checkpoint checker on DQ server
     });
 
 }
 function checkDq(){
-  //Gets the assets highlighted html from DQ
+  //Gets the assets highlighted html from DQ - Highlight ALL - ** Example only do not use this
     var settings = {
     "url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/pagehighlight/all?apiKey="+apiKey+"&visibility=public",
     "method": "GET",
@@ -108,9 +112,33 @@ function checkDq(){
 
   $.ajax(settings).done(function (response) {
     console.log(response);
-    //document.querySelector('html').innerHTML = response; 
+    //document.querySelector('html').innerHTML = response;
     document.getElementById('main').innerHTML = response; //Replace the main div with the htnl from DQ
 });
+}
+
+function checkDqSingle(checkpointId){
+  //Get the highlighted HTML back from DQ by issue id - only one isse will show
+  var settings = {
+    "url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/errors/"+checkpointId+"/?apiKey="+apiKey+"&visibility=public",
+    "method": "GET",
+    "timeout": 0,
+    "headers": {
+      "Accept": "text/html; charset=UTF-8",
+      "x-api-key": apiKey
+    },
+  };
+
+  $.ajax(settings).done(function (response) {
+    console.log(response);
+    //Return HTML with single issue highlighted
+    document.getElementById('main').innerHTML = response; //Replace the main div with the htnl from DQ
+    if(activeIssueId != null){
+      document.getElementById(activeIssueId).style.color = "black";  // Rest icon if set
+    }
+    document.getElementById(checkpointId).style.color = "red";  // Change icon colour to show active
+    activeIssueId = checkpointId; // Set active issue - set after reset so it clears the previous issue colour from green
+  });
 }
 
 //Query DQ to get all spelling issues
@@ -129,7 +157,7 @@ $.ajax(settings).done(function (response) {
 	if (response.misspellings.length != 0){
 		spellingCount = response.misspellings.length;
 			var i;
-			for (i = 0; i < response.misspellings.length; i++) { 
+			for (i = 0; i < response.misspellings.length; i++) {
   				console.log("Number of spelling mistakes is: "+ spellingCount);
 				document.getElementById("spellingCheck").innerHTML += "<p id='errors'> -" + response.misspellings[i].word + "</p>";
 				}
@@ -158,26 +186,31 @@ function checkCheckpoints(){
 	  cpErrors = response.totalErrors;
 	  totalCheckpoints = response.totalCheckpoints;
 	  console.log("Total number of checkpoints: " + response.checkpoints.length)
-    var pageIcon;
-    var sourceIcon;
+    var pageIcon; // cosmetic
+    var sourceIcon; // cosmetic
+    var viewButton;  // Contains id of issue for onclick fetch
 	  	var i;
-			for (i = 0; i < response.checkpoints.length; i++) { 
+			for (i = 0; i < response.checkpoints.length; i++) {
         //Is the error source code
         if (response.checkpoints[i].canHighlight.source){
           sourceIcon = "<i class='fas fa-code' title='source'></i>";
-        }
+        }else{sourceIcon="";} //Clear icon if false
         //Is the error source code
         if (response.checkpoints[i].canHighlight.page){
           pageIcon = "<i class='fas fa-file-alt' title='page'></i>";
-        }
+          //Only show option to highlight if possible
+          //Id set to checkpoint id so we can change colour on html fetch
+          viewButton = "<button onclick='checkDqSingle(\""+response.checkpoints[i].id+"\")' class='btn'><i id='"+response.checkpoints[i].id+"' class='fas fa-eye'></i></button>";
+        } else{pageIcon=""; viewButton="";}// Clear Icons if false}
 				if (response.checkpoints[i].failed){
 					var topics = "";  //Store topics of error
 					var c;
-					for (c = 0; c < response.checkpoints[i].topics.length; c++) { 
+					for (c = 0; c < response.checkpoints[i].topics.length; c++) {
+
 						topics += response.checkpoints[i].topics[c] +" | ";
 					}
   				console.log("Error found! #"+ i);
-				document.getElementById("errorList").innerHTML += "<p><b>" + topics + "</b>" + pageIcon + " " + sourceIcon + "</p><p>"+ response.checkpoints[i].name +"</p><a href='#' id='expander' data-toggle='collapse' data-target='#demo" + [i] + "'> more details...</a><div id='demo" + [i] + "' class='collapse'>" + response.checkpoints[i].description + "</div><hr>";
+				document.getElementById("errorList").innerHTML += "<p><b>" + topics + "</b>" + pageIcon + " " + sourceIcon + " " + viewButton + "</p><p>"+ response.checkpoints[i].name +"</p><a href='#' id='expander' data-toggle='collapse' data-target='#demo" + [i] + "'> more details...</a><div id='demo" + [i] + "' class='collapse'>" + response.checkpoints[i].description + "</div><hr>";
 				}
 			}
 	  loadChart(); //Load the chart for the widget
