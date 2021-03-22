@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <link rel="stylesheet" href="dq.css">
+  <!-- Bootstrap injects -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Fontawesome inject -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+  <!-- Chart.js inject -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+</head>
+<body>
+
+<!-- Main HTML - Note, you must wrap all HTML in a dive with 'main' as the id so it can be copied to DQ-->
+<div id="main">
+  <h2>Test HTML Page for DQ Check with a really, really long title</h2>
+  <p>Click on the DQM button below.  This is some text with a speelling mistakee or two.</p>
+  <img src="https://static.wikia.nocookie.net/lego/images/c/c0/Batman-1989-Batmobile.jpg" width="350px" alt="" />
+</div>
+<br />
+
+</body>
+<!-- DQ Integration floating button -->
+<a href="#" class="floatingDQButton" id="floatingDQButton" onclick="openNav()" aria-label="Open Digital Quality Tooling.">
+  <i class="fas fa-universal-access DQButton"></i>
+</a>
+
+<!-- Sidebar -->
+<div id="mySidebar" class="sidebar">
+  <!-- Header -->
+  <div class="topBar">
+    <div id="head">
+      <img src="https://www.crownpeak.com/images/logos/cp_logo_color.png?v=16102600172091" alt="Girl in a jacket" width="150">
+      <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><i class="far fa-window-close"></i></a>
+  </div>
+    <!-- Chart Reader - Loads through JavaScript -->
+    <div id="chart">
+      <br />
+      <canvas id="bar-chart-horizontal" width="70" height="45"></canvas>
+    </div>
+    <hr>
+  </div> <!-- Close topBar -->
+  <div id="checkpoints">
+    <span>
+      <i class="fas fa-exclamation-triangle"></i>
+    </span>
+  <div id="errorList">
+    <h6>Errors found:</h6>
+  </div>
+  </div> <!-- Close errorList -->
+  <br />
+  <div id="spellingCheck">
+    <i class="fas fa-spell-check"></i>
+    <h6>Spelling checks:</h6>
+  </div>
+</div>
+<script src="dq.js"></script> <!-- Load after body and DQ has run so the variables are set -->
+</html>
