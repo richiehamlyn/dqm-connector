@@ -55,8 +55,8 @@ function loadChart() {
 //Digital Quality API ******
     //DQ Variables
     var assetId = ""; //Will be set after the asset is sent to DQ
-    var apiKey = "DlJzdwZyI95O8X6EmOCv3amhcOkXhxr68KYk07Ab"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
-    var websiteId = "b2006e8e19c191dc5c8df6129b5b4118"; //Enter your DQ site address (you can get this through the API or from Support)
+    var apiKey = "<enter_your_crownpeak_dq_apikey_here>"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
+    var websiteId = "<enter_your_crownpeak_dq_websiteid_here>"; //Enter your DQ site address (you can get this through the API or from Support)
     var spellingCount = 0;
     var cpErrors = 0;
     var totalCheckpoints = 0;
