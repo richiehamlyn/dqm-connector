@@ -1,0 +1,120 @@
+body {
+  font-family: "Lato", sans-serif;
+}
+.floatingDQButton{
+  position: fixed;
+  bottom: 40px;
+  left: 40px;
+}
+.DQButton{
+  margin-top: 22px;
+  font-size: 48px;
+}
+.sidebar {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: white;
+  overflow-x: hidden;
+  transition: 0.5s;
+  border-right: 3px solid black;
+}
+
+.topBar{
+  background-color: white;
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+  padding-top: 15px;
+  z-index: 101;
+}
+
+.sidebar a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+.sidebar a:hover {
+  color: #f1f1f1;
+}
+.sidebar a {
+  font-size: 15px;
+}
+#expander{
+  font-size: 10px !important;
+  padding-left: 0px;
+  padding-top: 0px;
+}
+.sidebar .closebtn {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  font-size: 26px;
+  margin-left: 50px;
+}
+
+.openbtn {
+  font-size: 20px;
+  cursor: pointer;
+  background-color: #111;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+}
+
+.openbtn:hover {
+  background-color: #444;
+}
+
+#main {
+  transition: margin-left .5s;
+  padding: 16px;
+}
+
+.sidebar #head {
+  padding-left: 10px;
+  padding-right: 10px;
+  background: white;
+}
+.sidebar #chart{
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.sidebar #checkpoints{
+  /*overflow: scroll;*/
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: left;
+  font-size: 20px;
+  color: red;
+}
+.list-group-item{
+  font-size: 18px;
+}
+#spellingCheck{
+  padding-left: 10px;
+}
+#spellingCheck.dd{
+  margin: 0,0,0,0;
+}
+#errorList{
+  color: black;
+  font-size: 12px;
+  text-align: left;
+}
+#errors{
+  font-size: 12px;
+  margin: 0 0 0 0;
+}
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+@media screen and (max-height: 450px) {
+  .sidebar {padding-top: 15px;}
+  .sidebar a {font-size: 15px;}
+}
