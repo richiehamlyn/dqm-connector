@@ -1,12 +1,10 @@
 //Slider code
 function openNav() {
   document.getElementById("floatingDQButton").style.display = "none"; //Switch DQ button off
-
   document.getElementById("mySidebar").style.width = "250px";
   document.getElementById("main").style.marginLeft = "250px";
 
   runDQ();
-  //loadChart(); //Load the chart for the widget
 }
 
 function closeNav() {
@@ -14,7 +12,6 @@ function closeNav() {
   document.getElementById("mySidebar").style.width = "0";
   document.getElementById("main").style.marginLeft= "0";
   document.getElementById("floatingDQButton").style.display = "block"; // Switch DQ button on again
-  //location.reload(); // Reload to rest HTML on page
 }
 
 //Chart.js code
@@ -51,12 +48,36 @@ function loadChart() {
 	});
 	//charts.push(barChartHorizontal);
 }
+//apiKey in closure
+var apiKeyAccess = function(){
+   var apiKey= "<enter_your_dq_apikey_here>"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
+   return {
+       getApiKey: function(){return apiKey},
+       setApiKey: function(newApiKey){apiKey = newApiKey; return apiKey;}
+   };
+};
+//assetId in closure
+var assetIdAccess = function(){
+   var assetId= ""; //AssetId will be populated when the call is made to create one in DQM
+   return {
+       getAssetId: function(){return assetId},
+       setAssetId: function(newAssetId){assetId = newAssetId; return assetId;}
+   };
+};
+//websiteId in closure
+var websiteIdAccess = function(){
+   var websiteId= "<enter_your_dq_siteid_here>"; //Enter your DQ site id (you can get this through the API or from Support)
+   return {
+       getWebsiteId: function(){return websiteId},
+   };
+};
+var activeApiKey = apiKeyAccess(); // Access to closures
+var activeAssetId = assetIdAccess();
+var activeWebsiteId = websiteIdAccess();
+//console.log( apiKeyAccess.getApiKey() ); 
+//console.log( apiKeyAccess.setApiKey("test.new.com") ); 
 
 //Digital Quality API ******
-    //DQ Variables
-    var assetId = ""; //Will be set after the asset is sent to DQ
-    var apiKey = "<enter_your_crownpeak_dq_apikey_here>"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
-    var websiteId = "<enter_your_crownpeak_dq_websiteid_here>"; //Enter your DQ site address (you can get this through the API or from Support)
     var spellingCount = 0;
     var cpErrors = 0;
     var totalCheckpoints = 0;
@@ -69,6 +90,9 @@ function loadChart() {
     //console.log(markup);
 function runDQ() {
 	console.log("Running runDQ()");
+    var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
+    var websiteId = activeWebsiteId.getWebsiteId(); // Get closed websiteId variable
+    console.log("Api Key is: " + apiKey);
     //Create a new asset in DQ so that it can be scanned - returns an id for the asset
     var settings = {
       "url": "https://api.crownpeak.net/dqm-cms/v1/assets?apiKey=" + apiKey,
@@ -89,16 +113,22 @@ function runDQ() {
     $.ajax(settings).done(function (response) {
       console.log(response);
       console.log("Asset ID: " + response.id); //test
-      assetId = response.id; //test
-      console.log("Asset ID set to: " + assetId); //test
+      activeAssetId.setAssetId(response.id); // Set to current assetId that was just created
+
       console.log("About to run checkDQ");
       //checkDq(); // Run the DQ check only run to highlight ALL issues
       checkSpellings(); //Run spell checker on DQ Server
       checkCheckpoints(); //Run checkpoint checker on DQ server
-    });
-
+    })
+    //Inform user if request fails
+  .fail(function (xhr, textStatus, errorThrown){
+    alert('DQM did not respond when running initial DQ upload (error 1011)');
+    closeNav(); // Close the UI
+  });
 }
 function checkDq(){
+  var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
+  var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
   //Gets the assets highlighted html from DQ - Highlight ALL - ** Example only do not use this
     var settings = {
     "url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/pagehighlight/all?apiKey="+apiKey+"&visibility=public",
@@ -114,10 +144,17 @@ function checkDq(){
     //console.log(response);
     console.log("Running checkDQ");
     document.getElementById('main').innerHTML = response; //Replace the main div with the htnl from DQ
-});
+})
+  //Inform user if request fails
+  .fail(function (xhr, textStatus, errorThrown){
+    alert('DQM did not respond when running initial DQ check (error 1016)');
+    closeNav(); // Close the UI
+  });
 }
 
 function checkDqSingle(checkpointId){
+  var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
+  var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
   //Get the highlighted HTML back from DQ by issue id - only one isse will show
   var settings = {
     "url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/errors/"+checkpointId+"/?apiKey="+apiKey+"&visibility=public",
@@ -138,11 +175,18 @@ function checkDqSingle(checkpointId){
     }
     document.getElementById(checkpointId).style.color = "red";  // Change icon colour to show active
     activeIssueId = checkpointId; // Set active issue - set after reset so it clears the previous issue colour from green
+  })
+  //Inform user if request fails
+  .fail(function (xhr, textStatus, errorThrown){
+    alert('DQM did not respond when running single checkpoint (error 1012)');
+    closeNav(); // Close the UI
   });
 }
 
 //Query DQ to get all spelling issues
 function checkSpellings(){
+  var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
+  var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
 	var settings = {
   	"url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/spellcheck?apiKey="+apiKey,
   	"method": "GET",
@@ -167,8 +211,15 @@ $.ajax(settings).done(function (response) {
   //Collect spelling mistakes and count
 
 })
+//Inform user if request fails
+  .fail(function (xhr, textStatus, errorThrown){
+    alert('DQM did not respond when running spellcheck (error 1013)');
+    closeNav(); // Close the UI
+  });
 }
 function checkCheckpoints(){
+  var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
+  var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
 	//Query DQ to get all checkpoint failures
 	var settings = {
 	  "url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/status?apiKey="+apiKey+"&visibility=public",
@@ -181,8 +232,6 @@ function checkCheckpoints(){
 	};
 
 	$.ajax(settings).done(function (response) {
-	  //console.log(response);
-	  //console.log(response.totalErrors);
 	  cpErrors = response.totalErrors;
 	  totalCheckpoints = response.totalCheckpoints;
 	  console.log("Total number of checkpoints: " + response.checkpoints.length)
@@ -214,11 +263,18 @@ function checkCheckpoints(){
 				}
 			}
 	  loadChart(); //Load the chart for the widget
-	});
+	})
+  //Inform user if request fails
+  .fail(function (xhr, textStatus, errorThrown){
+    alert('DQM did not respond when running checkpoints (error 1014)');
+    closeNav(); // Close the UI
+  });
 }
 
   //Kill the current asset to DQ clean.
   function clearAsset(){
+    var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
+    var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
     console.log('Running clearAsset');
     console.log("Killing asset: " + assetId);
     var settings = {
@@ -229,9 +285,19 @@ function checkCheckpoints(){
       "x-api-key": apiKey
     },
   };
-
   $.ajax(settings).done(function (response) {
     console.log(response);
     console.log("Asset deleted!");
+  })
+  //Inform user if request fails
+  .fail(function (xhr, textStatus, errorThrown){
+    alert('DQM did not respond when cleaning up (error 1015)');
+      reloadMain();
+  })
+  .always(function (xhr, textStatus, errorThrown){
+    //alert('ClearAsset() always() fired');
   });
+  }
+  function reloadMain(){
+    location.reload(); // Reload to rest HTML on page
   }
