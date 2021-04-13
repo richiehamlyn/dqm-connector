@@ -46,7 +46,7 @@ function loadChart() {
 }
 //apiKey in closure
 var apiKeyAccess = function(){
-   var apiKey= "DlJzdwZyI95O8X6EmOCv3amhcOkXhxr68KYk07Ab"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
+   var apiKey= "<add_your_dqm_apikey_here>"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
    return {
        getApiKey: function(){return apiKey},
        setApiKey: function(newApiKey){apiKey = newApiKey; return apiKey;}
@@ -62,7 +62,7 @@ var assetIdAccess = function(){
 };
 //websiteId in closure
 var websiteIdAccess = function(){
-   var websiteId= "b2006e8e19c191dc5c8df6129b5b4118"; //Enter your DQ site address (you can get this through the API or from Support)
+   var websiteId= "<add_your_website_id_here>"; //Enter your DQ site address (you can get this through the API or from Support)
    return {
        getWebsiteId: function(){return websiteId},
    };
