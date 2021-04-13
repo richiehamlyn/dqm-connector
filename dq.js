@@ -1,10 +1,6 @@
 //Slider code
 function openNav() {
-  document.getElementById("floatingDQButton").style.display = "none"; //Switch DQ button off
-  document.getElementById("mySidebar").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-
-  runDQ();
+  loadUI(); // Load the UI in the pages body
 }
 
 function closeNav() {
@@ -27,7 +23,7 @@ function loadChart() {
 	        {
 	          label: "Digital Quality Check",
 	          backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f"],
-	          data: [cpErrors,1,spellingCount] // Test data needs to be replaced with DQ feedback
+	          data: [activeCpErrors.getCpErrors(),1,activeSpellCount.getSpellCount()] // Test data needs to be replaced with DQ feedback
 	        }
 	      ]
 	    },
@@ -35,7 +31,7 @@ function loadChart() {
 	      legend: { display: false },
 	      title: {
 	        display: true,
-	        text: 'Digital Quality Report for ' + totalCheckpoints +' checkpoints.'
+	        text: 'Digital Quality Report for ' + activeTotalCheckpoints.getTotalCheckpoints() +' checkpoints.'
 	      },
         scales:{
           xAxes:[{
@@ -50,7 +46,7 @@ function loadChart() {
 }
 //apiKey in closure
 var apiKeyAccess = function(){
-   var apiKey= "<enter_your_dq_apikey_here>"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
+   var apiKey= "DlJzdwZyI95O8X6EmOCv3amhcOkXhxr68KYk07Ab"; //Enter your API key for Crownpeak DQ from support@crownpeak.com
    return {
        getApiKey: function(){return apiKey},
        setApiKey: function(newApiKey){apiKey = newApiKey; return apiKey;}
@@ -58,7 +54,7 @@ var apiKeyAccess = function(){
 };
 //assetId in closure
 var assetIdAccess = function(){
-   var assetId= ""; //AssetId will be populated when the call is made to create one in DQM
+   var assetId= ""; //Enter your API key for Crownpeak DQ from support@crownpeak.com
    return {
        getAssetId: function(){return assetId},
        setAssetId: function(newAssetId){assetId = newAssetId; return assetId;}
@@ -66,28 +62,55 @@ var assetIdAccess = function(){
 };
 //websiteId in closure
 var websiteIdAccess = function(){
-   var websiteId= "<enter_your_dq_siteid_here>"; //Enter your DQ site id (you can get this through the API or from Support)
+   var websiteId= "b2006e8e19c191dc5c8df6129b5b4118"; //Enter your DQ site address (you can get this through the API or from Support)
    return {
        getWebsiteId: function(){return websiteId},
+   };
+};
+//SpellCount Variables in closure
+var spellCountAccess = function(){
+  var spellCount = 0; //Set count to zero and increment when called from DQM
+   return {
+       getSpellCount: function(){return spellCount},
+       setSpellCount: function(newSpellCount){spellCount = newSpellCount; return spellCount;}
+   };
+};
+//Checkpoint Errors count in closure
+var cpErrorsAccess = function(){
+  var cpErrors = 0; //Set count to zero and increment when called from DQM
+   return {
+       getCpErrors: function(){return cpErrors},
+       setCpErrors: function(newCpErrors){cpErrors = newCpErrors; return cpErrors;}
+   };
+};
+//Count checkpoints from DQM for the website
+var totalCheckpointsAccess = function(){
+  var totalCheckpoints = 0; //Set count to zero and increment when called from DQM
+   return {
+       getTotalCheckpoints: function(){return totalCheckpoints},
+       setTotalCheckpoints: function(newTotalCheckpoints){totalCheckpoints = newTotalCheckpoints; return totalCheckpoints;}
+   };
+};
+//Active Issue needs to be known to set the current highlighted view
+var activeIssueIdAccess = function(){
+  var activeIssueId;
+   return {
+       getActiveIssueId: function(){return activeIssueId},
+       setActiveIssueId: function(newActiveIssueId){activeIssueId = newActiveIssueId; return activeIssueId;}
    };
 };
 var activeApiKey = apiKeyAccess(); // Access to closures
 var activeAssetId = assetIdAccess();
 var activeWebsiteId = websiteIdAccess();
-//console.log( apiKeyAccess.getApiKey() ); 
-//console.log( apiKeyAccess.setApiKey("test.new.com") ); 
+var activeSpellCount = spellCountAccess();
+var activeCpErrors = cpErrorsAccess();
+var activeTotalCheckpoints = totalCheckpointsAccess();
+var activeActiveIssueId = activeIssueIdAccess();
 
 //Digital Quality API ******
-    var spellingCount = 0;
-    var cpErrors = 0;
-    var totalCheckpoints = 0;
-    var activeIssueId; //Set to the id of the active issue so we can reset colour just before updating to new issue
-    //Pass all html from the page in to a variable to pass to DQ
-    //var markup = document.documentElement.innerHTML;
     var headContent = document.head.innerHTML;
     var markup = document.body.innerHTML;
-    //var markup = document.getElementById("main").innerHTML; // Copy all html inside the main div tag...
-    //console.log(markup);
+
 function runDQ() {
 	console.log("Running runDQ()");
     var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
@@ -126,7 +149,7 @@ function runDQ() {
     closeNav(); // Close the UI
   });
 }
-function checkDq(){
+function checkDq(){ // **** Not currently in use *****
   var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
   var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
   //Gets the assets highlighted html from DQ - Highlight ALL - ** Example only do not use this
@@ -153,8 +176,10 @@ function checkDq(){
 }
 
 function checkDqSingle(checkpointId){
+  console.log("checkDqSingle checkpoint id: " + checkpointId);
   var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
   var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
+  var activeIssueId = activeActiveIssueId.getActiveIssueId(); // Get the current issue id
   //Get the highlighted HTML back from DQ by issue id - only one isse will show
   var settings = {
     "url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/errors/"+checkpointId+"/?apiKey="+apiKey+"&visibility=public",
@@ -171,10 +196,10 @@ function checkDqSingle(checkpointId){
     //Return HTML with single issue highlighted
     document.getElementById('main').innerHTML = response; //Replace the main div with the htnl from DQ
     if(activeIssueId != null){
-      document.getElementById(activeIssueId).style.color = "black";  // Rest icon if set
+      document.getElementById(activeIssueId).style.color = "black";  // Reset icon if set
     }
     document.getElementById(checkpointId).style.color = "red";  // Change icon colour to show active
-    activeIssueId = checkpointId; // Set active issue - set after reset so it clears the previous issue colour from green
+    activeActiveIssueId.setActiveIssueId(checkpointId); // Set active issue - set after reset so it clears the previous issue colour from green
   })
   //Inform user if request fails
   .fail(function (xhr, textStatus, errorThrown){
@@ -187,6 +212,8 @@ function checkDqSingle(checkpointId){
 function checkSpellings(){
   var apiKey = activeApiKey.getApiKey(); // Get closed apiKey variable
   var assetId = activeAssetId.getAssetId(); // Get closed assetId variable
+  console.log("CheckSpelling asset id: " + assetId);
+  //var spellingCount = activeSpellCount.getSpellCount(); // Get the number of spelling mistakes
 	var settings = {
   	"url": "https://api.crownpeak.net/dqm-cms/v1/assets/"+assetId+"/spellcheck?apiKey="+apiKey,
   	"method": "GET",
@@ -196,19 +223,16 @@ function checkSpellings(){
     "x-api-key": apiKey
   },
 };
-
+console.log("Current asset on SpellCheck: " + assetId + " current Api: " + apiKey)
 $.ajax(settings).done(function (response) {
 	if (response.misspellings.length != 0){
-		spellingCount = response.misspellings.length;
+		activeSpellCount.setSpellCount(response.misspellings.length);
 			var i;
 			for (i = 0; i < response.misspellings.length; i++) {
-  				console.log("Number of spelling mistakes is: "+ spellingCount);
+  				console.log("Number of spelling mistakes is: "+ activeSpellCount.getSpellCount());
 				document.getElementById("spellingCheck").innerHTML += "<p id='errors'> -" + response.misspellings[i].word + "</p>";
 				}
 	}
-  //console.log(response);
-  //console.log(response.misspellings[0].word);
-  //Collect spelling mistakes and count
 
 })
 //Inform user if request fails
@@ -232,9 +256,9 @@ function checkCheckpoints(){
 	};
 
 	$.ajax(settings).done(function (response) {
-	  cpErrors = response.totalErrors;
-	  totalCheckpoints = response.totalCheckpoints;
-	  console.log("Total number of checkpoints: " + response.checkpoints.length)
+	  activeCpErrors.setCpErrors(response.totalErrors); //Set total Checkpoint errors
+	  activeTotalCheckpoints.setTotalCheckpoints(response.totalCheckpoints); //Set Total checkpoints on website
+	  console.log("Total number of checkpoints: " + response.checkpoints.length) // Report to console
     var pageIcon; // cosmetic
     var sourceIcon; // cosmetic
     var viewButton;  // Contains id of issue for onclick fetch
